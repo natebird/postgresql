@@ -7,15 +7,13 @@ import Foundation
 #endif
 
 public class Result {
-    public typealias ResultPointer = OpaquePointer
+    private(set) var resultPointer: OpaquePointer?
     
-    private(set) var resultPointer: ResultPointer?
-    
-    init(resultPointer: ResultPointer) {
+    init(resultPointer: OpaquePointer) {
         self.resultPointer = resultPointer
     }
     
-    lazy var dictionary: [[String: Node]] = { 
+    var dictionary: [[String: Node]] {
         let rowCount = Int(PQntuples(self.resultPointer))
         let columnCount = Int(PQnfields(self.resultPointer))
         
@@ -43,6 +41,6 @@ public class Result {
         }
         
         return parsedData
-    }()
+    }
 }
 

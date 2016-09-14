@@ -14,46 +14,47 @@ public enum DatabaseError: Error {
 }
 
 public class Database {
-    private let host: String 
-    private let port: String
-    private let dbname: String 
-    private let user: String 
-    private let password: String 
-
-    public init(host: String = "localhost", port: String = "5432", dbname: String, user: String, password: String) {
+    internal(set) var host: String = ""
+    internal(set) var port: String = ""
+    internal(set) var dbname: String = ""
+    internal(set) var user: String = ""
+    internal(set) var password: String = ""
+    
+    internal var connection: Connection!
+    
+    public init() {
+        
+    }
+    
+    public init(host: String = "localhost", port: String = "5432", dbname: String, user: String, password: String) throws {
         self.host = host 
         self.port = port 
         self.dbname = dbname
         self.user = user 
         self.password = password
+        self.connection = try makeConnection()
     }
     
     @discardableResult
     public func execute(_ query: String, _ values: [Node]? = [], on connection: Connection? = nil) throws -> [[String: Node]] {
-        let internalConnection: Connection 
-
-        if let conn = connection {
-            internalConnection = conn
-        } else {
-            internalConnection = try makeConnection()
+        if let connection = connection {
+             self.connection = connection
+        } else if self.connection == nil {
+            self.connection = try makeConnection()
         }
         
         guard !query.isEmpty else {
             throw DatabaseError.noQuery
         }
         
-        let res: Result.ResultPointer
+        let res: OpaquePointer
         
         if let values = values, values.count > 0 {
-			let paramsValues = bind(values)
-            res = PQexecParams(internalConnection.connection, query, Int32(values.count), nil, paramsValues, nil, nil, Int32(0))
-            
-            defer {
-                paramsValues.deinitialize()
-                paramsValues.deallocate(capacity: values.count)
-            }
+            let paramsValues = bind(values)
+            res = PQexecParams(self.connection.pointer, query, Int32(values.count), nil, paramsValues, nil, nil, Int32(0))
+            defer { paramsValues.deinitialize() }
         } else {
-            res = PQexec(internalConnection.connection, query)
+            res = PQexec(self.connection.pointer, query)
         }
         
         defer { PQclear(res) }
@@ -74,19 +75,22 @@ public class Database {
     
     func bind(_ values: [Node]) -> UnsafeMutablePointer<UnsafePointer<Int8>?> {
 
+        let bindedValues = UnsafeMutablePointer<UnsafePointer<Int8>?>.allocate(capacity: values.count)
 
-        let paramsValues = UnsafeMutablePointer<UnsafePointer<Int8>?>.allocate(capacity: values.count)
-
-        var v = [[UInt8]]()
+        var bytes = [[UInt8]]()
         for i in 0..<values.count {
-            var ch = [UInt8](values[i].utf8)
-            ch.append(0)
-            v.append(ch)
-            paramsValues[i] = UnsafePointer<Int8>(OpaquePointer(v.last!))
+            if values[i].isNull {
+                bytes.append([0])   
+            } else {
+                bytes.append([UInt8](values[i].utf8) + [0])
+            }
+            
+            bindedValues[i] = UnsafePointer<Int8>(OpaquePointer(bytes.last!))
         }
-        return paramsValues
+        return bindedValues
     }
     
+    @discardableResult
     public func makeConnection() throws -> Connection {
         return try Connection(host: self.host, port: self.port, dbname: self.dbname, user: self.user, password: self.password)
     }

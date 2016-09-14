@@ -5,19 +5,17 @@
 #endif
 
 public final class Connection {
-    public typealias ConnectionPointer = OpaquePointer
-    
-    private(set) var connection: ConnectionPointer!
+    private(set) var pointer: OpaquePointer!
 
     public var connected: Bool {
-        if let connection = connection, PQstatus(connection) == CONNECTION_OK {
+        if let pointer = pointer, PQstatus(pointer) == CONNECTION_OK {
             return true
         }
         return false
     }
     
     public init(host: String = "localhost", port: String = "5432", dbname: String, user: String, password: String) throws {
-        self.connection = PQconnectdb("host='\(host)' port='\(port)' dbname='\(dbname)' user='\(user)' password='\(password)'")
+        self.pointer = PQconnectdb("host='\(host)' port='\(port)' dbname='\(dbname)' user='\(user)' password='\(password)'")
         if !self.connected {
             throw DatabaseError.cannotEstablishConnection
         }
@@ -28,7 +26,7 @@ public final class Connection {
             throw DatabaseError.cannotEstablishConnection
         }
         
-        PQreset(connection)
+        PQreset(self.pointer)
     }
     
     public func close() throws {
@@ -36,7 +34,7 @@ public final class Connection {
             throw DatabaseError.cannotEstablishConnection
         }
         
-        PQfinish(connection)
+        PQfinish(self.pointer)
     }
     
     deinit {

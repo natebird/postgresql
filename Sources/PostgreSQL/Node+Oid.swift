@@ -29,9 +29,9 @@ extension Node {
 		case .text, .varchar, .char:
 			self = .string(value)
 		case .int2, .int4, .int8:
-			self = .number(.int(Int(value) ?? 0))
+			self = .number(.int(Int(value)!))
 		case .float4, .float8, .numeric:
-			self = .number(.double(Double(value) ?? 0))
+			self = .number(.double(Double(value)!))
 		case .bool:
 			self = .bool((value == "true") ? true : false)
 		case .unknown:

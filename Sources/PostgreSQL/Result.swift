@@ -13,7 +13,7 @@ public class Result {
         self.resultPointer = resultPointer
     }
     
-    var dictionary: [[String: Node]] {
+    var result: [[String: Node]] {
         let rowCount = Int(PQntuples(self.resultPointer))
         let columnCount = Int(PQnfields(self.resultPointer))
         

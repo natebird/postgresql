@@ -4,6 +4,8 @@
     import CPostgreSQLMac
 #endif
 
+import Core
+
 public enum DatabaseError: Error {
     case cannotEstablishConnection
     case indexOutOfRange
@@ -21,6 +23,7 @@ public class Database {
     internal(set) var password: String = ""
     
     internal var connection: Connection!
+    private let lock = Lock()
     
     public init() {
         
@@ -36,41 +39,46 @@ public class Database {
     }
     
     @discardableResult
-    public func execute(_ query: String, _ values: [Node]? = [], on connection: Connection? = nil) throws -> [[String: Node]] {
-        if let connection = connection {
-             self.connection = connection
-        } else if self.connection == nil {
-            self.connection = try makeConnection()
-        }
-        
+    public func execute(_ query: String, _ values: [Node]? = [], _ connection: Connection? = nil) throws -> [[String: Node]] {
         guard !query.isEmpty else {
             throw DatabaseError.noQuery
         }
         
-        let res: OpaquePointer
-        
-        if let values = values, values.count > 0 {
-            let paramsValues = bind(values)
-            res = PQexecParams(self.connection.pointer, query, Int32(values.count), nil, paramsValues, nil, nil, Int32(0))
-            defer { paramsValues.deinitialize() }
-        } else {
-            res = PQexec(self.connection.pointer, query)
+        if let connection = connection {
+            self.connection = connection
+        } else if self.connection == nil {
+            self.connection = try makeConnection()
         }
         
-        defer { PQclear(res) }
-        switch Status(result: res) {
-        case .nonFatalError:
-            throw DatabaseError.invalidSQL(message: String(cString: PQresultErrorMessage(res)) )
-        case .fatalError:
-            throw DatabaseError.invalidSQL(message: String(cString: PQresultErrorMessage(res)) )
-        case .unknown:
-            throw DatabaseError.invalidSQL(message: String(cString: PQresultErrorMessage(res)) )
-        case .tuplesOk:
-            return Result(resultPointer: res).dictionary
-        default:
-            break
+        var returnable: [[String: Node]] = []
+        try self.lock.locked {
+            let res: OpaquePointer
+            
+            if let values = values, values.count > 0 {
+                let paramsValues = bind(values)
+                res = PQexecParams(self.connection.pointer, query, Int32(values.count), nil, paramsValues, nil, nil, Int32(0))
+                defer { paramsValues.deinitialize() }
+            } else {
+                res = PQexec(self.connection.pointer, query)
+            }
+            
+            defer { PQclear(res) }
+            switch Status(result: res) {
+            case .nonFatalError:
+                throw DatabaseError.invalidSQL(message: String(cString: PQresultErrorMessage(res)) )
+            case .fatalError:
+                throw DatabaseError.invalidSQL(message: String(cString: PQresultErrorMessage(res)) )
+            case .unknown:
+                throw DatabaseError.invalidSQL(message: String(cString: PQresultErrorMessage(res)) )
+            case .tuplesOk:
+                returnable = Result(resultPointer: res).result
+            default:
+                break
+            }
+    
         }
-        return []
+    
+        return returnable
     }
     
     func bind(_ values: [Node]) -> UnsafeMutablePointer<UnsafePointer<Int8>?> {

@@ -4,9 +4,11 @@
     import CPostgreSQLMac
 #endif
 
+import Core
+
 public final class Connection {
     private(set) var pointer: OpaquePointer!
-
+    
     public var connected: Bool {
         if let pointer = pointer, PQstatus(pointer) == CONNECTION_OK {
             return true
@@ -15,6 +17,7 @@ public final class Connection {
     }
     
     public init(host: String = "localhost", port: String = "5432", dbname: String, user: String, password: String) throws {
+
         self.pointer = PQconnectdb("host='\(host)' port='\(port)' dbname='\(dbname)' user='\(user)' password='\(password)'")
         if !self.connected {
             throw DatabaseError.cannotEstablishConnection

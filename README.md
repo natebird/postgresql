@@ -6,9 +6,9 @@ A Swift wrapper for PostgreSQL.
 - [x] Prepared Statements
 - [x] Tested
 
-This wrapper uses the latest PostgreSQL fetch API to enable performant prepared statements and output bindings. 
+This wrapper uses the latest PostgreSQL fetch API to enable performant prepared statements and output bindings.
 
-The Swift wrappers around the PostgreSQL's C structs and pointers automatically manage closing connections and deallocating memeory. Additionally, the PostgreSQL library API is used to perform thread safe, performant queries to the database.
+The Swift wrappers around the PostgreSQL's C structs and pointers automatically manage closing connections and deallocating memory. Additionally, the PostgreSQL library API is used to perform thread safe, performant queries to the database.
 
 
 ## Examples
@@ -73,7 +73,7 @@ brew install postgresql
 brew link postgresql
 brew services start postgresql
 
-// to stop 
+// to stop
 brew services stop postgresql
 ```
 
@@ -91,10 +91,8 @@ psql -h dbhost -U username dbname
 
 ## Fluent
 
-This wrapper was created to power [Fluent](https://github.com/qutheory/fluent), an ORM for Swift. 
+This wrapper was created to power [Fluent](https://github.com/vapor/fluent), an ORM for Swift.
 
 ## 👥 Authors
 
-Made by [Prince Ugwuh](https://twitter.com/Prince2k3) a member of Qutheory community.
-
-
+[Prince Ugwuh](https://twitter.com/Prince2k3), [Nate Bird](https://twitter.com/natesbird), [Steven Roebert](https://twitter.com/sroebert)

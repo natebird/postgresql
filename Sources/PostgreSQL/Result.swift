@@ -1,8 +1,4 @@
-#if os(Linux)
-    import CPostgreSQLLinux
-#else
-    import CPostgreSQLMac
-#endif
+import CPostgreSQL
 
 class Result {
     typealias Pointer = OpaquePointer
@@ -14,19 +10,19 @@ class Result {
     init(configuration: Configuration, pointer: Pointer) {
         self.configuration = configuration
         self.pointer = pointer
-        
+
         var parsed: [[String: Node]] = []
-        
+
         let rowCount = PQntuples(pointer)
         let columnCount = PQnfields(pointer)
-        
+
         if rowCount > 0 && columnCount > 0 {
             for row in 0..<rowCount {
                 var item: [String: Node] = [:]
-                
+
                 for column in 0..<columnCount {
                     let name = String(cString: PQfname(pointer, Int32(column)))
-                    
+
                     if PQgetisnull(pointer, row, column) == 1 {
                         item[name] = .null
                     } else if let value = PQgetvalue(pointer, row, column) {
@@ -42,11 +38,11 @@ class Result {
                         item[name] = .null
                     }
                 }
-                
+
                 parsed.append(item)
             }
         }
-        
+
         self.parsed = parsed
     }
 }

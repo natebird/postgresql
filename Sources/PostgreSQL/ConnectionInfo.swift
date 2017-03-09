@@ -1,8 +1,4 @@
-#if os(Linux)
-    import CPostgreSQLLinux
-#else
-    import CPostgreSQLMac
-#endif
+import CPostgreSQL
 
 public enum ConnInfo {
     case raw(String)
@@ -18,11 +14,11 @@ extension ConnInfoInitializable {
     public init(params: [String: String]) throws {
         try self.init(conninfo: .params(params))
     }
-    
+
     public init(host: String, port: Int, database: String, user: String, password: String) throws {
         try self.init(conninfo: .basic(host: host, port: port, database: database, user: user, password: password))
     }
-    
+
     public init(conninfo: String) throws {
         try self.init(conninfo: .raw(conninfo))
     }

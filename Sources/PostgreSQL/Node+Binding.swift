@@ -7,7 +7,7 @@ protocol Bindable {
 
 extension Node: Bindable {
     var postgresBindingData: ([Int8]?, OID?, DataFormat) {
-        switch self {
+        switch wrapped {
         case .null:
             // PQexecParams converts nil pointer to NULL.
             // see: https://www.postgresql.org/docs/9.1/static/libpq-exec.html
@@ -31,18 +31,20 @@ extension Node: Bindable {
             return string.postgresBindingData
             
         case .array(let array):
-            let elements = array.map { $0.postgresArrayElementString }
+            let elements = array.map { postgresArrayElementString($0) }
             let arrayString = "{\(elements.joined(separator: ","))}"
             return (arrayString.utf8CString.array, .none, .string)
             
         case .object(_):
             print("Unsupported Node type for PostgreSQL binding, everything except for .object is supported.")
             return (nil, nil, .string)
+        default:
+            return (nil, nil, .string)
         }
     }
     
-    var postgresArrayElementString: String {
-        switch self {
+    func postgresArrayElementString(_: StructuredData) -> String {
+        switch wrapped {
         case .null:
             return "NULL"
             
@@ -63,12 +65,14 @@ extension Node: Bindable {
             return "\"\(escapedString)\""
             
         case .array(let array):
-            let elements = array.map { $0.postgresArrayElementString }
+            let elements = array.map { postgresArrayElementString($0) }
             return "{\(elements.joined(separator: ","))}"
             
         case .object(_):
             print("Unsupported Node array type for PostgreSQL binding, everything except for .object is supported.")
             return "NULL"
+        default:
+            return ""
         }
     }
 }

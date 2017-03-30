@@ -3,16 +3,16 @@ import PackageDescription
 let package = Package(
     name: "PostgreSQL",
     dependencies: [
-      // Module map for `libmysql`
-      .Package(url: "https://github.com/vapor/cpostgresql.git", Version(2,0,0, prereleaseIdentifiers: ["alpha"])),
+      // Module map for `libpq`
+      .Package(url: "https://github.com/vapor/cpostgresql.git", Version(2,0,0, prereleaseIdentifiers: ["beta"])),
 
       // Data structure for converting between multiple representations
-      .Package(url: "https://github.com/vapor/node.git", majorVersion: 1),
+      .Package(url: "https://github.com/vapor/node.git", Version(2,0,0, prereleaseIdentifiers: ["beta"])),
 
       // Core extensions, type-aliases, and functions that facilitate common tasks
-      .Package(url: "https://github.com/vapor/core.git", majorVersion: 1),
+      .Package(url: "https://github.com/vapor/core.git", Version(2,0,0, prereleaseIdentifiers: ["beta"])),
 
       // JSON parsing and serialization for storing arrays and objects in MySQL
-      .Package(url: "https://github.com/vapor/json.git", majorVersion: 1),
+      .Package(url: "https://github.com/vapor/json.git", Version(2,0,0, prereleaseIdentifiers: ["beta"])),
     ]
 )

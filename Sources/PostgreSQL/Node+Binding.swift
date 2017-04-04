@@ -31,7 +31,7 @@ extension Node: Bindable {
             return string.postgresBindingData
             
         case .array(let array):
-            let elements = array.map { postgresArrayElementString($0) }
+            let elements = array.map { $0.postgresArrayElementString }
             let arrayString = "{\(elements.joined(separator: ","))}"
             return (arrayString.utf8CString.array, .none, .string)
             
@@ -42,9 +42,12 @@ extension Node: Bindable {
             return (nil, nil, .string)
         }
     }
-    
-    func postgresArrayElementString(_: StructuredData) -> String {
-        switch wrapped {
+}
+
+extension StructuredData {
+
+    var postgresArrayElementString: String {
+        switch self {
         case .null:
             return "NULL"
             
@@ -65,7 +68,7 @@ extension Node: Bindable {
             return "\"\(escapedString)\""
             
         case .array(let array):
-            let elements = array.map { postgresArrayElementString($0) }
+            let elements = array.map { $0.postgresArrayElementString }
             return "{\(elements.joined(separator: ","))}"
             
         case .object(_):

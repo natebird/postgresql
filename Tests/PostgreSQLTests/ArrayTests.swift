@@ -193,7 +193,7 @@ class ArrayTests: XCTestCase {
         for (i, resultRow) in result.enumerated() {
             let intArray = resultRow["int_array"]
             XCTAssertNotNil(intArray?.array)
-            XCTAssertEqual(intArray!.bytes!, rows[i])
+            XCTAssertEqual(intArray!.array!, rows[i])
         }
     }
 }

@@ -54,21 +54,23 @@ public final class Connection: ConnInfoInitializable {
 
         for value in values {
             let (bytes, oid, format) = value.postgresBindingData
-            paramValues.append(bytes)
             types.append(oid?.rawValue ?? 0)
+            paramValues.append(bytes)
             lengths.append(Int32(bytes?.count ?? 0))
             formats.append(format.rawValue)
         }
 
         let res: Result.Pointer = PQexecParams(
-            cConnection, query,
+            cConnection,
+            query,
             Int32(values.count),
-            types, paramValues.map {
+            types,
+            paramValues.map {
                 UnsafePointer<Int8>($0)
             },
             lengths,
             formats,
-            DataFormat.binary.rawValue
+            DataFormat.binary.rawValue // 1
         )
 
         defer {
